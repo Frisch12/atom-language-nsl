@@ -1,117 +1,455 @@
+scopeName: 'source.nsl-own'
 fileTypes: [
   "nsl"
 ]
-name: "nsL Assembler"
-comment: "https://github.com/atom/atom-language-nsl"
+name: "nsL Assembler-own"
 patterns: [
-  {
-    match: "(\\b|^\\s*)(?i)#(define|else|endif|if|ifend|macro|macroend|nsis|nsisend|return|include)\\b"
-    name: "keyword.control.nsl"
-  }
-  {
-    match: "(\\b|^\\s*)(?i)(AddIncludeDir|Include|AddPluginDir|Abort|AddBrandingImage|AddSize|AllowRootDirInstall|AllowSkipFiles|AutoCloseWindow|BGFont|BGGradient|BrandingText|BringToFront|CRCCheck|Call|Caption|ChangeUI|CheckBitmap|ClearErrors|CompletedText|ComponentText|CopyFiles|CreateDirectory|CreateFont|CreateShortCut|DeleteINISec|DeleteINIStr|Delete|DeleteRegKey|DeleteRegValue|DetailPrint|DetailsButtonText|DirText|DirVar|DirVerify|EnableWindow|EnumRegKey|EnumRegValue|Exch|Exec|ExecShell|ExecWait|ExpandEnvStrings|FileBufSize|FileClose|FileErrorText|File|FileOpen|FileReadByte|FileRead|FileRecursive|FileSeek|FileWriteByte|FileWrite|FindClose|FindFirst|FindNext|FindWindow|FlushINI|GetCurInstType|GetCurrentAddress|GetDLLVersion|GetDLLVersionLocal|GetDlgItem|GetErrorLevel|GetFileTime|GetFileTimeLocal|GetFunctionAddress|GetInstDirError|GetLabelAddress|GetTempFileName|HideWindow|Icon|IfAbort|IfErrors|IfFileExists|IfRebootFlag|IfSilent|InitPluginsDir|InstProgressFlags|InstTypeGetText|InstType|InstTypeSetText|InstallButtonText|InstallColors|InstallDir|InstallDirRegKey|IntFmt|IsWindow|LangString|LicenseBkColor|LicenseData|LicenseForceSelection|LicenseLangString|LicenseText|LoadLanguageFile|LockWindow|LogSet|LogText|MessageBox|MiscButtonText|Name|OutFile|Pop|Push|Quit|RMDir|RMDirRecursive|ReadEnvStr|ReadINIStr|ReadRegDWORD|ReadRegStr|Reboot|RegDLL|Rename|RequestExecutionLevel|ReserveFile|ReserveFileRecursive|SearchPath|SectionGetFlags|SectionGetInstTypes|SectionGetSize|SectionGetText|SectionIn|SectionSetFlags|SectionSetInstTypes|SectionSetSize|SectionSetText|SendMessage|SetAutoClose|SetBrandingImage|SetCompress|SetCompressorDictSize|SetCompressor|SetCtlColors|SetCurInstType|SetDatablockOptimize|SetDateSave|SetDetailsPrint|SetDetailsView|SetErrorLevel|SetErrors|SetFileAttributes|SetFont|SetOutPath|SetOverwrite|SetRebootFlag|SetRegView|SetShellVarContext|SetSilent|ShowInstDetails|ShowUninstDetails|ShowWindow|SilentInstall|SilentUninstall|Sleep|SpaceTexts|StrCmp|StrCmpS|StrCpy|StrLen|SubCaption|UnRegDLL|UninstallButtonText|UninstallCaption|UninstallIcon|UninstallSubCaption|UninstallText|VIAddVersionKey|VIProductVersion|WindowIcon|WriteINIStr|WriteRegBin|WriteRegDWORD|WriteRegExpandStr|WriteRegStr|WriteUninstaller|XPStyle)\\b"
-    name: "keyword.command.nsl"
-  }
-  {
-    match: "\\w+\\:\\:\\w+"
-    name: "keyword.function.nsl"
-  }
-  {
-    match: "(\\b|^\\s*)(?i)(break|case|default|do|else|for|function|if|page|return|section|switch|uninstall function|uninstall page|uninstall section|while)\\b"
-    name: "support.function.nsl"
-  }
-  {
-    match: "(\\b|^\\s*)(?i)(MB_DEFBUTTON1|MB_DEFBUTTON2|MB_DEFBUTTON3|MB_DEFBUTTON4|MB_ICONEXCLAMATION|MB_ICONINFORMATION|MB_ICONQUESTION|MB_ICONSTOP|MB_OK|MB_OKCANCEL|MB_RETRYCANCEL|MB_RIGHT|MB_RTLREADING|MB_SETFOREGROUND|MB_TOPMOST|MB_USERICON|MB_YESNO|MB_YESNOCANCEL|IDABORT|IDCANCEL|IDIGNORE|IDNO|IDOK|IDRETRY|IDYES)\\b"
-    name: "constant.helpers.nsl"
-  }
-  {
-    match: "[\\\\A-Za-z_.][\\\\A-Za-z_0-9]*(?=\\s*\\()"
-    name: "meta.function.nsl"
-  }
-  {
-    match: "\\b(admin|all|auto|both|current|false|force|hide|highest|ifdiff|ifnewer|lastused|listonly|nevershow|none|normal|off|on|show|silent|silentlog|textonly|true|user)\\b"
-    name: "constant.flags.nsl"
-  }
-  {
-    match: "\\b((0(x|X)[0-9a-fA-F])|([0-9\\.\\,]+))\\b"
-    name: "constant.numeric.nsl"
-  }
-  {
-    match: "@\\$[\\w]+"
-    name: "variable.name.nsl"
-  }
-  {
-    match: "\\$[\\w]+"
-    name: "variable.name.nsl"
-  }
-  {
-    begin: "`"
-    beginCaptures:
-      "0":
-        name: "punctuation.definition.string.begin.nsl"
-    end: "(`)|(\\n)"
-    endCaptures:
-      "0":
-        name: "punctuation.definition.string.end.nsl"
-    name: "string.quoted.back.nsl"
+    {
+      include: '#blockBody'
+    }
+  ]
+repository:
+  blockBody:
     patterns: [
       {
-        match: "\\$\\\\."
-        name: "constant.character.escape.nsl"
+        include: "#variableAssignment"
+      }
+      {
+        include: "#variable"
+      }
+      {
+        include: '#controlStructure'
+      }
+      {
+        include: "#function"
+      }
+      {
+        include: "#functionCall"
+      }
+      {
+        include: "#page"
+      }
+      {
+        include: "#lineEnd"
+      }
+      {
+        match: "\\s"
+        name: 'punctuation.whitespace'
+      }
+      {
+        include: '#comments'
+      }
+      {
+        include: '#block'
+      }
+      {
+        begin: "#nsis"
+        beginCaptures:
+          '0':
+            name: 'keyword.control.nsl'
+        end: "#nsisend"
+        endCaptures:
+          '0':
+            name: 'keyword.control.nsl'
+      }
+      {
+        include: '#precompiler'
+      }
+      {
+        include: "#invalid"
       }
     ]
-  }
-  {
-    begin: "\""
-    beginCaptures:
-      "0":
-        name: "punctuation.definition.string.begin.nsl"
-    end: "(\")|(\\n)"
-    endCaptures:
-      "0":
-        name: "punctuation.definition.string.end.nsl"
-    name: "string.quoted.double.nsl"
+  precompiler:
     patterns: [
       {
-        match: "\\$\\\\."
-        name: "constant.character.escape.nsl"
+        begin: "(\\#)"
+        beginCaptures:
+          '1':
+            name: 'keyword.control.nsl'
+        end: "[\\n\\r]{1}"
+        patterns: [
+          {
+            begin: '(define|include)'
+            beginCaptures:
+              '0':
+                name: 'keyword.control.nsl'
+            patterns: [
+              {
+                match: "[\\t\\ ]"
+                name: 'punctuation.whitespace'
+              }
+              {
+                include: "#literal"
+              }
+              {
+                include: "#constant"
+              }
+            ]
+          }
+          {
+            include: "#whitespace"
+          }
+          {
+            include: "#lineEnd"
+          }
+          {
+            include: "#invalid"
+          }
+        ]
       }
     ]
-  }
-  {
-    begin: "'"
-    beginCaptures:
-      "0":
-        name: "punctuation.definition.string.begin.nsl"
-    end: "(')|(\\n)"
-    endCaptures:
-      "0":
-        name: "punctuation.definition.string.end.nsl"
-    name: "string.quoted.single.nsl"
+  block:
     patterns: [
       {
-        match: "\\$\\\\."
-        name: "constant.character.escape.nsl"
+        begin: '\\{'
+        beginCaptures:
+          '0':
+            name: 'punctuation.definition.block.begin.nsl'
+        end: '\\}'
+        endCaptures:
+          '0':
+            name: 'punctuation.definition.block.end.nsl'
+        patterns: [
+          {
+            begin: '(return)'
+            beginCaptures:
+              '1':
+                name: 'keyword.control.nsl'
+            end: '(;)'
+            endCaptures:
+              '1':
+                name: 'punctuation.terminator.statement.nsl'
+            patterns: [
+              {
+                include: "#literal"
+              }
+            ]
+          }
+          {
+            include: '#blockBody'
+          }
+        ]
       }
     ]
-  }
-  {
-    captures:
-      "1":
-        name: "punctuation.definition.comment.nsl"
-    match: "(//).*$\\n?"
-    name: "comment.line.nsl"
-  }
-  {
-    begin: "/\\*"
-    captures:
-      "0":
-        name: "punctuation.definition.comment.nsl"
-    end: "\\*/"
-    name: "comment.block.nsl"
-  }
-  {
-    include: "source.nsis"
-  }
-]
-scopeName: "source.nsl"
+  lineEnd:
+    patterns: [
+      {
+        match: ';'
+        name: 'punctuation.terminator.statement.nsl'
+      }
+    ]
+  numbers:
+    patterns: [
+      {
+        match: '\\b(?<!\\$|_)((0(x|X)[0-9a-fA-F]+)|(0(b|B)[01]+)|(0(o|O)[0-7]+)|([0-9]+(\\.[0-9]+)?)((e|E)[+-]?[0-9]+)?)\\b'
+        name: 'constant.numeric.nsl'
+      }
+    ]
+  constant:
+    patterns: [
+      {
+        match: "([A-Z_]*)"
+        name: 'constant.other.nsl'
+      }
+    ]
+  boolean:
+    patterns: [
+      {
+        match: "true"
+        name: 'constant.language.boolean.true.nsl'
+      }
+      {
+        match: "false"
+        name: 'constant.language.boolean.false.nsl'
+      }
+    ]
+  strings:
+    patterns: [
+      {
+        begin: '\''
+        beginCaptures:
+          '0':
+            name: 'punctuation.definition.string.begin.nsl'
+        end: '\''
+        endCaptures:
+          '0':
+            name: 'punctuation.definition.string.end.nsl'
+        name: 'string.quoted.single.nsl'
+        patterns: [
+          {
+            match: '\\\\.'
+            name: 'constant.character.escape.nsl'
+          }
+          {
+            match: '[^\']*[^\\n\\r\'\\\\]$'
+            name: 'invalid.illegal.string.nsl'
+          }
+        ]
+      }
+      {
+        begin: '"'
+        beginCaptures:
+          '0':
+            name: 'punctuation.definition.string.begin.nsl'
+        end: '"'
+        endCaptures:
+          '0':
+            name: 'punctuation.definition.string.end.nsl'
+        name: 'string.quoted.double.nsl'
+        patterns: [
+          {
+            match: '\\\\.'
+            name: 'constant.character.escape.nsl'
+          }
+          {
+            match: '[^"]*[^\\n\\r"\\\\]$'
+            name: 'invalid.illegal.string.nsl'
+          }
+        ]
+      }
+      {
+        begin: '@"'
+        beginCaptures:
+          '0':
+            name: 'punctuation.definition.string.begin.nsl'
+        end: '"'
+        endCaptures:
+          '0':
+            name: 'punctuation.definition.string.end.nsl'
+        name: 'string.quoted.double.nsl'
+        patterns: [
+          {
+            match: '[^"]*[^\\n\\r"\\\\]$'
+            name: 'invalid.illegal.string.nsl'
+          }
+        ]
+      }
+      {
+        begin: '(?:\\s*)\\.(?:\\s*)'
+        beginCaptures:
+          '0':
+            name: 'keyword.operator.concatinate.string.nsl'
+        end: '([\\s\\.]?)'
+        patterns: [
+          {
+            include: "#variable"
+          }
+          {
+            include: "#strings"
+          }
+          {
+            include: "#numbers"
+          }
+        ]
+      }
+    ]
+  page:
+    patterns: [
+      {
+        begin: '(page)'
+        beginCaptures:
+          '0':
+            name: 'keyword.control.nsl'
+        end: ';'
+        endCaptures:
+          '0':
+            name: 'punctuation.terminator.statement.nsl'
+        patterns: [
+          {
+            include: "#functionCall"
+          }
+        ]
+      }
+    ]
+  functionCall:
+    patterns: [
+      {
+        begin: "(\\w+(?:[\\:]{2})?(?:\\w)*)(\\()"
+        beginCaptures:
+          '1':
+            name: 'entity.name.function.nsl'
+          '2':
+            name: 'punctuation.definition.parameters.begin.nsl'
+        end: "(\\))"
+        endCaptures:
+          '1':
+            name: 'punctuation.definition.parameters.end.nsl'
+        patterns:[
+          {
+            include: "#literal"
+          }
+          {
+            match: ",(?:\\s*)"
+            name: 'meta.object.delimiter.nsl'
+          }
+          {
+            include: "#invalid"
+          }
+        ]
+      }
+    ]
+  functionParams:
+    patterns: [
+      {
+        match: '\\(|\\)'
+        name: 'meta.brace.round.nsl'
+      }
+      {
+        match: ','
+        name: 'meta.object.delimiter.nsl'
+      }
+      {
+        match: '='
+        name: 'keyword.operator.assignment.nsl'
+      }
+      {
+        include: '#comments'
+      }
+      {
+        include: '#variable'
+      }
+      {
+        match: '\\s'
+        name: 'punctuation.whitespace'
+      }
+      {
+        include: '#invalid'
+      }
+    ]
+  function:
+    patterns: [
+      {
+        begin: "(function) ([\\w\\.\\_]{1}[\\w\\.\\_0-9]*)(\\()"
+        beginCaptures:
+          '1':
+            name: 'storage.type.function.nsl'
+          '2':
+            name: 'entity.name.function.nsl'
+          '3':
+            name: 'punctuation.definition.parameters.begin.nsl'
+        end: '(\\))'
+        endCaptures:
+          '1':
+            name: 'punctuation.definition.parameters.end.nsl'
+        patterns: [
+          {
+            include: '#functionParams'
+          }
+        ]
+      }
+    ]
+  literal:
+    patterns: [
+      {
+        include: "#variable"
+      }
+      {
+        include: "#numbers"
+      }
+      {
+        include: "#strings"
+      }
+      {
+        include: "#boolean"
+      }
+    ]
+  variable:
+    patterns: [
+      {
+        match: "(\\@?)\\$([\\w]+)"
+        name: "variable.name.nsl"
+      }
+    ]
+  variableAssignment:
+    patterns: [
+      {
+        begin: '((?:@)?\\$[\\w]+)[\\s]*(=)[\\s]*'
+        beginCaptures:
+          '1':
+            name: 'variable.name.nsl'
+          '2':
+            name: 'keyword.operator.assignment.nsl'
+        end: '(;)'
+        endCaptures:
+          '1':
+            name: 'punctuation.terminator.statement.nsl'
+        patterns: [
+          {
+            include: "#literal"
+          }
+          {
+            include: "#functionCall"
+          }
+          {
+            include: "#invalid"
+          }
+        ]
+      }
+    ]
+  controlStructure:
+    patterns: [
+      {
+        include: '#if'
+      }
+    ]
+  if:
+    patterns: [
+      {
+        begin: '(if)(?:[\\w*])(\\()'
+        beginCaptures:
+          '1':
+            name: 'keyword.control.if.nsl'
+          '2':
+            name: 'punctuation.definition.parameters.begin.nsl'
+        end: '(\\))'
+        endCaptures:
+          '1':
+            name: 'punctuation.definition.parameters.end.nsl'
+        patterns: [
+          {
+            include: '#booleanExpression'
+          }
+        ]
+      }
+    ]
+  booleanExpression:
+    patterns: [
+      {
+        
+      }
+    ]
+  invalid:
+    patterns: [
+      {
+        match: "(.*)"
+        name: "invalid.illegal"
+      }
+    ]
+  comments:
+    patterns: [
+      {
+        begin: '/\\*'
+        captures:
+          '0':
+            name: 'punctuation.definition.comment.js'
+        end: '\\*/'
+        name: 'comment.block.js'
+      }
+      {
+        begin: '(^[ \\t]+)?(?=//)'
+        beginCaptures:
+          '1':
+            'name': 'punctuation.whitespace.comment.leading.js'
+        end: '(?!\\G)'
+        patterns: [
+          {
+            begin: '//'
+            beginCaptures:
+              '0':
+                name: 'punctuation.definition.comment.js'
+            end: '\\n'
+            name: 'comment.line.double-slash.js'
+          }
+        ]
+      }
+    ]
